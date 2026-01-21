@@ -13,17 +13,6 @@ ARG NODE_VERSION=24.13.0
 # FROM node:${NODE_VERSION}-bullseye
 FROM timbru31/node-chrome:24
 
-# Accept proxy args and expose them only in this stage (used by apt, npm, playwright)
-ARG http_proxy
-ARG https_proxy
-ARG no_proxy
-
-ENV http_proxy=${http_proxy}
-ENV https_proxy=${https_proxy}
-ENV HTTP_PROXY=${http_proxy}
-ENV HTTPS_PROXY=${https_proxy}
-ENV NO_PROXY=${no_proxy}
-
 # System deps for node-gyp and Playwright (browser tests)
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
@@ -36,16 +25,16 @@ RUN apt-get update && \
 WORKDIR /app
 
 # Copy package files and npm config first (better layer caching)
-COPY package.json package-lock.json .npmrc ./
+COPY package.json package-lock.json ./
 
 # Copy the pre-downloaded Node headers tarball from build context
 # (Ensure the file exists at this path in your repo)
 COPY node-headers/node-v${NODE_VERSION}-headers.tar.gz /opt/node-headers.tar.gz
 
 # Install dependencies; node-gyp will use the local headers tarball (no external download)
-RUN npm ci --prefer-offline --no-audit --progress=false \
-           --tarball=/opt/node-headers.tar.gz
-# RUN npm ci 
+# RUN npm ci --prefer-offline --no-audit --progress=false \
+          #  --tarball=/opt/node-headers.tar.gz
+RUN npm ci 
 
 # Install Playwright browsers (uses proxy env if needed)
 # RUN npx playwright install chromium

@@ -34,7 +34,7 @@ export default defineConfig({
           provider: playwright({
             launchOptions: {
               channel: "chrome",
-              executablePath: "/usr/bin/google-chrome",
+              // executablePath: "/usr/bin/google-chrome",
             },
           }),
         },
