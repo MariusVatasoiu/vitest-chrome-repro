@@ -1,0 +1,31 @@
+{
+  "name": "poc-vitest",
+  "type": "module",
+  "private": true,
+  "files": [
+    "dist",
+    "types"
+  ],
+  "scripts": {
+    "coverage": "vitest run --coverage",
+    "dev": "vite",
+    "test": "vitest --run",
+    "list": "vitest list",
+    "test:ui": "vitest --ui"
+  },
+  "dependencies": {
+    "@blockquote/rollup-plugin-externalize-source-dependencies": "1.0.0",
+    "@open-wc/testing": "4.0.0",
+    "@webcomponents/scoped-custom-element-registry": "0.0.10",
+    "lit": "3.3.2"
+  },
+  "devDependencies": {
+    "@vitest/browser-playwright": "4.0.17",
+    "playwright": "1.57.0",
+    "vite": "8.0.0-beta.7",
+    "vitest": "4.0.17"
+  },
+  "stackblitz": {
+    "startCommand": "npm run test:ui"
+  }
+}
