@@ -20,8 +20,7 @@ export default defineConfig({
     globals: true,
     setupFiles: "./vitest.setup.js",
     include: ["src/**/*.{spec,test}.{js,ts}"],
-    testTimeout: 10000,
-    retry: 4,
+    // testTimeout: 10000,
     maxWorkers: 4,
     browser: {
       enabled: true,

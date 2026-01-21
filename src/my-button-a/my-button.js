@@ -20,6 +20,10 @@ export class MyButton extends LitElement {
     return {
       name: { type: String },
       count: { type: Number },
+      step: { type: Number },
+      max: { type: Number },
+      disabled: { type: Boolean, reflect: true },
+      status: { type: String },
     };
   }
 
@@ -39,10 +43,26 @@ export class MyButton extends LitElement {
     super();
     this.name = "World";
     this.count = 1;
+    this.step = 1;
+    this.max = null;
+    this.disabled = false;
+    this.status = "";
   }
 
   _onClick() {
-    this.count++;
+    if (this.disabled) return;
+
+    const nextCount = this.count + this.step;
+    if (this.max !== null && nextCount >= this.max) {
+      this.count = this.max;
+      this.disabled = true;
+      this.status = "Limit reached";
+      this.dispatchEvent(new CustomEvent("count", { detail: this.count }));
+      this.dispatchEvent(new CustomEvent("limit", { detail: this.count }));
+      return;
+    }
+
+    this.count = nextCount;
     this.dispatchEvent(new CustomEvent("count", { detail: this.count }));
   }
 
@@ -50,12 +70,19 @@ export class MyButton extends LitElement {
     return "foo";
   }
 
+  reset() {
+    this.count = 1;
+    this.disabled = false;
+    this.status = "";
+  }
+
   render() {
     return html`
       <h1>Hello, ${this.name}!</h1>
-      <button @click=${this._onClick} role="button">
+      <button @click=${this._onClick} role="button" ?disabled=${this.disabled}>
         Click Count: ${this.count}
       </button>
+      ${this.status ? html`<p class="status">${this.status}</p>` : ""}
       <slot></slot>
     `;
   }

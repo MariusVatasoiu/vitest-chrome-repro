@@ -169,4 +169,49 @@ describe("Input Component", async () => {
     );
     await expect.element(page.getByLabelText("Email")).toBeVisible();
   });
+
+  it("should render helper text when provided", async () => {
+    componentEl.helperText = "Helpful hint";
+    await componentEl.updateComplete;
+
+    await expect.element(page.getByText("Helpful hint")).toBeVisible();
+  });
+
+  it("should clear the input value when clear button is clicked", async () => {
+    componentEl.clearable = true;
+    componentEl.value = "To clear";
+    await componentEl.updateComplete;
+
+    const input = page.getByRole("textbox").first();
+    await expect.element(input).toHaveValue("To clear");
+
+    await page.getByRole("button", { name: "Clear" }).click();
+    await expect.element(input).toHaveValue("");
+  });
+
+  it("should trim value on blur when trimOnBlur is enabled", async () => {
+    componentEl.trimOnBlur = true;
+    await componentEl.updateComplete;
+
+    const inputEl = componentEl.shadowRoot.querySelector("input");
+    inputEl.value = "  spaced  ";
+    inputEl.dispatchEvent(new Event("input", { bubbles: true, composed: true }));
+    inputEl.dispatchEvent(new Event("blur", { bubbles: true, composed: true }));
+    await componentEl.updateComplete;
+
+    expect(inputEl.value).toBe("spaced");
+  });
+
+  it("should mark invalid when below minLength", async () => {
+    componentEl.minLength = 5;
+    await componentEl.updateComplete;
+
+    const inputEl = componentEl.shadowRoot.querySelector("input");
+    inputEl.value = "abc";
+    inputEl.dispatchEvent(new Event("input", { bubbles: true, composed: true }));
+    inputEl.dispatchEvent(new Event("blur", { bubbles: true, composed: true }));
+    await componentEl.updateComplete;
+
+    expect(componentEl.invalid).toBe(true);
+  });
 });

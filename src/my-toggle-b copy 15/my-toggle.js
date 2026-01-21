@@ -42,6 +42,16 @@ export class MyToggle extends LitElement {
       cursor: not-allowed;
     }
 
+    .toggle-switch.small {
+      width: 36px;
+      height: 18px;
+    }
+
+    .toggle-switch.large {
+      width: 64px;
+      height: 32px;
+    }
+
     .toggle-thumb {
       position: absolute;
       top: 2px;
@@ -58,6 +68,24 @@ export class MyToggle extends LitElement {
       transform: translateX(26px);
     }
 
+    .toggle-switch.small .toggle-thumb {
+      width: 14px;
+      height: 14px;
+    }
+
+    .toggle-switch.small.checked .toggle-thumb {
+      transform: translateX(18px);
+    }
+
+    .toggle-switch.large .toggle-thumb {
+      width: 28px;
+      height: 28px;
+    }
+
+    .toggle-switch.large.checked .toggle-thumb {
+      transform: translateX(32px);
+    }
+
     .toggle-label {
       font-size: 14px;
       color: #333;
@@ -66,6 +94,11 @@ export class MyToggle extends LitElement {
 
     .toggle-label.disabled {
       color: #999;
+    }
+
+    .toggle-description {
+      font-size: 12px;
+      color: #666;
     }
 
     .sr-only {
@@ -87,6 +120,7 @@ export class MyToggle extends LitElement {
       disabled: { type: Boolean },
       label: { type: String },
       size: { type: String },
+      description: { type: String },
     };
   }
 
@@ -96,6 +130,7 @@ export class MyToggle extends LitElement {
     this.disabled = false;
     this.label = "";
     this.size = "medium";
+    this.description = "";
   }
 
   _onToggle() {
@@ -124,18 +159,21 @@ export class MyToggle extends LitElement {
   }
 
   render() {
+    const descriptionId = this.description ? "toggle-description" : "";
+
     return html`
       <div class="toggle-container">
         <button
           class="toggle-switch ${this.checked ? "checked" : ""} ${this.disabled
             ? "disabled"
-            : ""}"
+            : ""} ${this.size}"
           ?disabled="${this.disabled}"
           @click="${this._onToggle}"
           @keydown="${this._onKeyDown}"
           role="switch"
           aria-checked="${this.checked}"
           aria-label="${this.label || "Toggle switch"}"
+          aria-describedby="${descriptionId}"
         >
           <div class="toggle-thumb"></div>
         </button>
@@ -143,6 +181,13 @@ export class MyToggle extends LitElement {
           ? html`
               <span class="toggle-label ${this.disabled ? "disabled" : ""}"
                 >${this.label}</span
+              >
+            `
+          : ""}
+        ${this.description
+          ? html`
+              <span id="toggle-description" class="toggle-description"
+                >${this.description}</span
               >
             `
           : ""}

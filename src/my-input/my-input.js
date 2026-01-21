@@ -63,6 +63,27 @@ export class MyInput extends LitElement {
       text-align: right;
       margin-top: 2px;
     }
+
+    .helper-text {
+      font-size: 12px;
+      color: #666;
+      margin-top: 4px;
+    }
+
+    .clear-button {
+      align-self: flex-end;
+      margin-top: 6px;
+      padding: 4px 8px;
+      border: 1px solid #ccc;
+      background: #fff;
+      border-radius: 4px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .clear-button:hover {
+      background: #f4f4f4;
+    }
   `;
 
   static get properties() {
@@ -74,9 +95,13 @@ export class MyInput extends LitElement {
       required: { type: Boolean },
       disabled: { type: Boolean },
       maxLength: { type: Number },
+      minLength: { type: Number },
       pattern: { type: String },
       errorMessage: { type: String },
       invalid: { type: Boolean, reflect: true },
+      helperText: { type: String },
+      clearable: { type: Boolean },
+      trimOnBlur: { type: Boolean },
     };
   }
 
@@ -89,9 +114,13 @@ export class MyInput extends LitElement {
     this.required = false;
     this.disabled = false;
     this.maxLength = null;
+    this.minLength = null;
     this.pattern = "";
     this.errorMessage = "Invalid input";
     this.invalid = false;
+    this.helperText = "";
+    this.clearable = false;
+    this.trimOnBlur = false;
   }
 
   _onInput(e) {
@@ -105,6 +134,14 @@ export class MyInput extends LitElement {
   }
 
   _onBlur(e) {
+    if (this.trimOnBlur) {
+      const trimmed = this.value.trim();
+      if (trimmed !== this.value) {
+        this.value = trimmed;
+        e.target.value = this.value;
+      }
+    }
+
     this._validate();
     this.dispatchEvent(
       new CustomEvent("blur", {
@@ -123,9 +160,26 @@ export class MyInput extends LitElement {
     } else if (this.pattern && !new RegExp(this.pattern).test(this.value)) {
       this.invalid = true;
       this.errorMessage = "Please match the requested format";
+    } else if (this.invalid) {
+      this.errorMessage = "Invalid input";
     } else if (!this.invalid) {
       this.errorMessage = "";
     }
+  }
+
+  _onClear() {
+    this.value = "";
+    this._validate();
+    this.dispatchEvent(
+      new CustomEvent("clear", {
+        detail: { value: this.value },
+      })
+    );
+    this.dispatchEvent(
+      new CustomEvent("input", {
+        detail: { value: this.value, valid: !this.invalid },
+      })
+    );
   }
 
   focus() {
@@ -150,16 +204,32 @@ export class MyInput extends LitElement {
           ?required="${this.required}"
           ?disabled="${this.disabled}"
           maxlength="${this.maxLength || ""}"
+          minlength="${this.minLength || ""}"
           pattern="${this.pattern}"
           @input="${this._onInput}"
           @blur="${this._onBlur}"
         />
+        ${this.clearable && this.value
+          ? html`
+              <button
+                type="button"
+                class="clear-button"
+                aria-label="Clear"
+                @click="${this._onClear}"
+              >
+                Clear
+              </button>
+            `
+          : ""}
         ${this.maxLength
           ? html`
               <div class="char-counter">
                 ${this.value.length}/${this.maxLength}
               </div>
             `
+          : ""}
+        ${this.helperText
+          ? html`<div class="helper-text">${this.helperText}</div>`
           : ""}
         <div class="error-message">${this.errorMessage}</div>
       </div>

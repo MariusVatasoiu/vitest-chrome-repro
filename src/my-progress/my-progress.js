@@ -99,6 +99,21 @@ export class MyProgress extends LitElement {
     .progress-fill.animated {
       animation: pulse 1.5s ease-in-out infinite;
     }
+
+    .progress-fill.indeterminate {
+      background: linear-gradient(90deg, #007cba 0%, #4fa8d8 50%, #007cba 100%);
+      background-size: 200% 100%;
+      animation: indeterminate 1.2s ease-in-out infinite;
+    }
+
+    @keyframes indeterminate {
+      0% {
+        background-position: 200% 0;
+      }
+      100% {
+        background-position: -200% 0;
+      }
+    }
   `;
 
   static get properties() {
@@ -111,6 +126,7 @@ export class MyProgress extends LitElement {
       showPercentage: { type: Boolean },
       animated: { type: Boolean },
       status: { type: String },
+      indeterminate: { type: Boolean },
     };
   }
 
@@ -124,9 +140,11 @@ export class MyProgress extends LitElement {
     this.showPercentage = true;
     this.animated = false;
     this.status = "";
+    this.indeterminate = false;
   }
 
   get percentage() {
+    if (!this.max) return 0;
     return Math.min(Math.max((this.value / this.max) * 100, 0), 100);
   }
 
@@ -159,10 +177,12 @@ export class MyProgress extends LitElement {
   }
 
   render() {
+    const showPercent = this.showPercentage && !this.indeterminate;
     const progressClass = `progress-bar ${this.size}`;
     const fillClass = `progress-fill ${this.variant} ${
-      this.animated ? "animated" : ""
-    }`;
+      this.animated || this.indeterminate ? "animated" : ""
+    } ${this.indeterminate ? "indeterminate" : ""}`;
+    const progressWidth = this.indeterminate ? 100 : this.percentage;
 
     return html`
       <div class="progress-container">
@@ -170,7 +190,7 @@ export class MyProgress extends LitElement {
           ? html`
               <div class="progress-header">
                 ${this.label ? html`<span>${this.label}</span>` : ""}
-                ${this.showPercentage
+                ${showPercent
                   ? html` <span>${Math.round(this.percentage)}%</span> `
                   : ""}
               </div>
@@ -180,13 +200,16 @@ export class MyProgress extends LitElement {
         <div
           class="${progressClass}"
           role="progressbar"
-          aria-valuenow="${this.value}"
+          aria-valuenow="${this.indeterminate ? "" : this.value}"
           aria-valuemin="0"
           aria-valuemax="${this.max}"
+          aria-valuetext="${this.indeterminate
+            ? "Loading"
+            : `${Math.round(this.percentage)}%`}"
           aria-label="${this.label || "Progress"}"
         >
-          <div class="${fillClass}" style="width: ${this.percentage}%">
-            ${this.size !== "small"
+          <div class="${fillClass}" style="width: ${progressWidth}%">
+            ${this.size !== "small" && showPercent
               ? html`
                   <span class="progress-text"
                     >${Math.round(this.percentage)}%</span

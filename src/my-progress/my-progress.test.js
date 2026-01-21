@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { fixture, defineCE } from "@open-wc/testing";
 import { page } from "vitest/browser";
 
@@ -113,5 +113,35 @@ describe("Progress Component", async () => {
   it("should work with different values", async () => {
     const progress25 = await fixture(`<${tag} value="25"></${tag}>`);
     await expect.element(page.getByText("25%")).toBeVisible();
+  });
+
+  it("should clamp progress when using setProgress", async () => {
+    componentEl.setProgress(150);
+    await componentEl.updateComplete;
+
+    await expect
+      .element(page.getByRole("progressbar"))
+      .toHaveAttribute("aria-valuenow", "100");
+  });
+
+  it("should emit progress-complete event when reaching max", async () => {
+    const handler = vi.fn();
+    componentEl.addEventListener("progress-complete", handler);
+
+    componentEl.setProgress(100);
+    await componentEl.updateComplete;
+
+    expect(handler).toHaveBeenCalledTimes(1);
+  });
+
+  it("should render indeterminate state", async () => {
+    componentEl.indeterminate = true;
+    await componentEl.updateComplete;
+
+    const fill = componentEl.shadowRoot.querySelector(".progress-fill");
+    expect(fill.classList.contains("indeterminate")).toBe(true);
+    await expect
+      .element(page.getByRole("progressbar"))
+      .toHaveAttribute("aria-valuetext", "Loading");
   });
 });

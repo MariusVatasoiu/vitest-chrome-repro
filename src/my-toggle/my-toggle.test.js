@@ -217,4 +217,45 @@ describe("Toggle Component", async () => {
       .element(toggleSwitch)
       .toHaveAttribute("aria-label", "Test Toggle");
   });
+
+  it("should apply size class when size is set", async () => {
+    componentEl.size = "large";
+    await componentEl.updateComplete;
+
+    const toggleButton = componentEl.shadowRoot.querySelector("button");
+    expect(toggleButton.classList.contains("large")).toBe(true);
+  });
+
+  it("should toggle with keyboard input", async () => {
+    const toggleButton = componentEl.shadowRoot.querySelector("button");
+    toggleButton.dispatchEvent(
+      new KeyboardEvent("keydown", { key: " ", bubbles: true, composed: true })
+    );
+    await componentEl.updateComplete;
+
+    expect(componentEl.checked).toBe(true);
+  });
+
+  it("should show description and link it for accessibility", async () => {
+    componentEl.description = "Extra toggle info";
+    await componentEl.updateComplete;
+
+    await expect.element(page.getByText("Extra toggle info")).toBeVisible();
+    await expect
+      .element(page.getByRole("switch"))
+      .toHaveAttribute("aria-describedby", "toggle-description");
+  });
+
+  it("should not toggle when disabled", async () => {
+    componentEl.disabled = true;
+    await componentEl.updateComplete;
+
+    const toggleButton = componentEl.shadowRoot.querySelector("button");
+    toggleButton.dispatchEvent(
+      new MouseEvent("click", { bubbles: true, composed: true })
+    );
+    await componentEl.updateComplete;
+
+    expect(componentEl.checked).toBe(false);
+  });
 });

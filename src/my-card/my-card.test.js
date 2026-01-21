@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { fixture, defineCE } from "@open-wc/testing";
 import { page } from "vitest/browser";
 
@@ -233,5 +233,50 @@ describe("Card Component", async () => {
     await expect
       .element(page.getByRole("button", { name: "Action" }))
       .toBeVisible();
+  });
+
+  it("should render tags when provided", async () => {
+    componentEl.tags = ["alpha", "beta"];
+    await componentEl.updateComplete;
+
+    const tags = componentEl.shadowRoot.querySelectorAll(".card-tag");
+    expect(tags.length).toBe(2);
+  });
+
+  it("should render footer text when set", async () => {
+    componentEl.footerText = "Footer content";
+    await componentEl.updateComplete;
+
+    await expect.element(page.getByText("Footer content")).toBeVisible();
+  });
+
+  it("should disable action button when actionDisabled is true", async () => {
+    componentEl.actionDisabled = true;
+    await componentEl.updateComplete;
+
+    const actionButton = componentEl.shadowRoot.querySelector("button");
+    expect(actionButton.disabled).toBe(true);
+  });
+
+  it("should not emit action event when action is disabled", async () => {
+    const handler = vi.fn();
+    componentEl.actionDisabled = true;
+    componentEl.addEventListener("action", handler);
+    await componentEl.updateComplete;
+
+    const actionButton = componentEl.shadowRoot.querySelector("button");
+    actionButton.click();
+
+    expect(handler).not.toHaveBeenCalled();
+  });
+
+  it("should emit toggle event with expanded detail", async () => {
+    const handler = vi.fn();
+    componentEl.addEventListener("toggle", handler);
+
+    await page.getByRole("button", { name: "Expand" }).click();
+
+    expect(handler).toHaveBeenCalledTimes(1);
+    expect(handler.mock.calls[0][0].detail.expanded).toBe(true);
   });
 });

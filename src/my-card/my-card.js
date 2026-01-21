@@ -40,10 +40,33 @@ export class MyCard extends LitElement {
       line-height: 1.5;
     }
 
+    .card-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      list-style: none;
+      padding: 0;
+      margin: 12px 0 0 0;
+    }
+
+    .card-tag {
+      background: #f2f6ff;
+      color: #274060;
+      border-radius: 999px;
+      padding: 2px 10px;
+      font-size: 12px;
+    }
+
     .card-actions {
       margin-top: 16px;
       padding-top: 8px;
       border-top: 1px solid #eee;
+    }
+
+    .card-footer {
+      margin-top: 12px;
+      font-size: 12px;
+      color: #666;
     }
 
     button {
@@ -72,6 +95,9 @@ export class MyCard extends LitElement {
       subtitle: { type: String },
       expanded: { type: Boolean },
       actionText: { type: String },
+      actionDisabled: { type: Boolean },
+      footerText: { type: String },
+      tags: { type: Array },
     };
   }
 
@@ -81,6 +107,9 @@ export class MyCard extends LitElement {
     this.subtitle = "";
     this.expanded = false;
     this.actionText = "Action";
+    this.actionDisabled = false;
+    this.footerText = "";
+    this.tags = [];
   }
 
   _onToggleExpand() {
@@ -93,6 +122,8 @@ export class MyCard extends LitElement {
   }
 
   _onAction() {
+    if (this.actionDisabled) return;
+
     this.dispatchEvent(
       new CustomEvent("action", {
         detail: { title: this.title },
@@ -116,16 +147,32 @@ export class MyCard extends LitElement {
               <p>This is additional content that appears when expanded.</p>
             `
           : ""}
+        ${this.tags.length
+          ? html`
+              <ul class="card-tags">
+                ${this.tags.map(
+                  (tag) => html`<li class="card-tag">${tag}</li>`
+                )}
+              </ul>
+            `
+          : ""}
       </div>
 
       <div class="card-actions">
-        <button @click=${this._onAction} role="button">
+        <button
+          @click=${this._onAction}
+          role="button"
+          ?disabled=${this.actionDisabled}
+        >
           ${this.actionText}
         </button>
         <button @click=${this._onToggleExpand} role="button">
           ${this.expanded ? "Collapse" : "Expand"}
         </button>
       </div>
+      ${this.footerText
+        ? html`<div class="card-footer">${this.footerText}</div>`
+        : ""}
     `;
   }
 }
