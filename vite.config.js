@@ -3,6 +3,52 @@
 import { playwright } from "@vitest/browser-playwright";
 import { defineConfig } from "vite";
 import externalizeSourceDependencies from "@blockquote/rollup-plugin-externalize-source-dependencies";
+import { existsSync, readFileSync } from "node:fs";
+
+const isDockerOnLinux = () => {
+  if (process.platform !== "linux") {
+    return false;
+  }
+
+  if (existsSync("/.dockerenv")) {
+    return true;
+  }
+
+  try {
+    const cgroup = readFileSync("/proc/1/cgroup", "utf8");
+    return cgroup.includes("docker") || cgroup.includes("containerd");
+  } catch {
+    return false;
+  }
+};
+
+const getLocalChromeExecutable = () => {
+  const envPath = process.env.CHROME_BIN;
+  if (envPath && existsSync(envPath)) {
+    return envPath;
+  }
+
+  if (process.platform === "darwin") {
+    const macPath =
+      "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
+    return existsSync(macPath) ? macPath : undefined;
+  }
+
+  return undefined;
+};
+
+const getChromiumLaunchOptions = () => {
+  if (isDockerOnLinux()) {
+    return { executablePath: "/usr/bin/google-chrome" };
+  }
+
+  const chromePath = getLocalChromeExecutable();
+  if (chromePath) {
+    return { executablePath: chromePath };
+  }
+
+  return undefined;
+};
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -20,7 +66,6 @@ export default defineConfig({
     globals: true,
     setupFiles: "./vitest.setup.js",
     include: ["src/**/*.{spec,test}.{js,ts}"],
-    // testTimeout: 10000,
     maxWorkers: 4,
     browser: {
       enabled: true,
@@ -31,10 +76,7 @@ export default defineConfig({
         {
           browser: "chromium",
           provider: playwright({
-            launchOptions: {
-              channel: "chrome",
-              // executablePath: "/usr/bin/google-chrome",
-            },
+            launchOptions: getChromiumLaunchOptions(),
           }),
         },
       ],

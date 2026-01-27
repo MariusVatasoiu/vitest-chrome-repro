@@ -1,16 +1,3 @@
-# docker build -t vitest-node-ubuntu .
-# docker run --storage-opt size=2G vitest-node-ubuntu
-#docker run --rm -it --name vitest-run \
-#-v vitest-tarce:/trace \
-#-e HOME=/trace/home \
-#-e XDG_CACHE_HOME=/trace/cache \
-#-e TMPDIR=/work/tmp \
-#vitest-node-ubuntu
-
-
-# ---------- single-stage build that uses a local headers tarball ----------
-ARG NODE_VERSION=24.13.0
-# FROM node:${NODE_VERSION}-bullseye
 FROM timbru31/node-chrome:24
 
 # System deps for node-gyp and Playwright (browser tests)
@@ -27,13 +14,6 @@ WORKDIR /app
 # Copy package files and npm config first (better layer caching)
 COPY package.json package-lock.json ./
 
-# Copy the pre-downloaded Node headers tarball from build context
-# (Ensure the file exists at this path in your repo)
-COPY node-headers/node-v${NODE_VERSION}-headers.tar.gz /opt/node-headers.tar.gz
-
-# Install dependencies; node-gyp will use the local headers tarball (no external download)
-# RUN npm ci --prefer-offline --no-audit --progress=false \
-          #  --tarball=/opt/node-headers.tar.gz
 RUN npm ci 
 
 # Install Playwright browsers (uses proxy env if needed)
