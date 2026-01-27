@@ -1,5 +1,7 @@
 ## Repro steps
 
+Set the `Disk usage limit` to 16 - 24 GB.
+
 ```bash
 docker volume create vitest-trace
 ```
@@ -7,6 +9,8 @@ docker volume create vitest-trace
 ```bash
 docker build -t vitest-node-ubuntu .
 ```
+
+Run the tests:
 
 ```bash
 docker run --rm -it --name vitest-run \
@@ -16,6 +20,8 @@ docker run --rm -it --name vitest-run \
     -e TMPDIR=/work/tmp \
     vitest-node-ubuntu
 ```
+
+And in the same time in another terminal run of these scripts:
 
 ```bash
 bash watch-deleted-targets.sh vitest-run
